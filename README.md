@@ -1,3 +1,2 @@
-# Processor
-
-Processor Checkpoint for ECE 350
+# Processor Checkpoint for ECE 350
+## NAME (NETID)

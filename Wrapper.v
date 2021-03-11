@@ -20,7 +20,7 @@
  * purely a design choice (and thereby up to you). 
  * 
  * You must change line 36 to add the memory file of the test you created using the assembler
- * For example, you would add sample inside of the quotes after assembling sample.s
+ * For example, you would add sample inside of the quotes on line 38 after assembling sample.s
  *
  **/
 

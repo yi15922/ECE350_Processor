@@ -1,8 +1,8 @@
 module regfile(
 	clock, ctrl_writeEnable, ctrl_reset, ctrl_writeReg,
 	ctrl_readRegA, ctrl_readRegB, data_writeReg, data_readRegA,
-	data_readRegB
-);
+	data_readRegB);
+	
 	input clock, ctrl_writeEnable, ctrl_reset;
 	input [4:0] ctrl_writeReg, ctrl_readRegA, ctrl_readRegB;
 	input [31:0] data_writeReg;
@@ -13,7 +13,7 @@ module regfile(
 	integer count;
 	initial begin
 		for (count=0; count<32; count=count+1)
-			registers[count] <= 32'd0;
+			registers[count] <= 0;
 	end
 
 	integer i;
