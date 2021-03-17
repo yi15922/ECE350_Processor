@@ -40,7 +40,7 @@ module Wrapper_tb #(parameter FILE = "nop");
 	localparam MEM_DIR = "Memory Files/";
 	localparam OUT_DIR = "Output Files/";
 	localparam VERIF_DIR = "Verification Files/";
-	localparam DEFAULT_CYCLES = 100;
+	localparam DEFAULT_CYCLES = 255;
 
 	// Inputs to the processor
 	reg clock = 0, reset = 0;
@@ -51,6 +51,33 @@ module Wrapper_tb #(parameter FILE = "nop");
 	wire[31:0] instAddr, instData, 
 		rData, regA, regB,
 		memAddr, memDataIn, memDataOut;
+
+	// Wires for Test Harness
+	wire[4:0] rs1_test, rs1_in;
+	reg testMode = 0; 
+	reg[7:0] num_cycles = DEFAULT_CYCLES;
+	reg[15*8:0] exp_text;
+	reg null;
+
+	// Connect the reg to test to the for loop
+	assign rs1_test = reg_to_test;
+
+	// Hijack the RS1 value for testing
+	assign rs1_in = testMode ? rs1_test : rs1;
+
+	// Expected Value from File
+	reg signed [31:0] exp_result;
+
+	// Where to store file error codes
+	integer expFile, diffFile, actFile, expScan; 
+
+	// Do Verification
+	reg verify = 1;
+
+	// Metadata
+	integer errors = 0,
+			cycles = 0,
+			reg_to_test = 0;
 
 	// Main Processing Unit
 	processor CPU(.clock(clock), .reset(reset), 
@@ -94,33 +121,6 @@ module Wrapper_tb #(parameter FILE = "nop");
 	//////////////////
 	// Test Harness //
 	//////////////////
-
-	// Wires for Test Harness
-	wire[4:0] rs1_test, rs1_in;
-	reg testMode = 0; 
-	reg[7:0] num_cycles = DEFAULT_CYCLES;
-	reg[15*8:0] exp_text;
-	reg null;
-
-	// Connect the reg to test to the for loop
-	assign rs1_test = reg_to_test;
-
-	// Hijack the RS1 value for testing
-	assign rs1_in = testMode ? rs1_test : rs1;
-
-	// Expected Value from File
-	reg signed [31:0] exp_result;
-
-	// Where to store file error codes
-	integer expFile, diffFile, actFile, expScan; 
-
-	// Do Verification
-	reg verify = 1;
-
-	// Metadata
-	integer errors = 0,
-			cycles = 0,
-			reg_to_test = 0;
 
 	initial begin
 		// Check if the parameter exists
@@ -166,6 +166,11 @@ module Wrapper_tb #(parameter FILE = "nop");
 				$display("Where NUM_CYCLES is a positive integer\n");
 			end
 		end
+
+		// Clear the Processor at the beginning
+		reset = 1;
+		#1
+		reset = 0;
 
 		// Run for the number of cycles specified 
 		for (cycles = 0; cycles < num_cycles; cycles = cycles + 1) begin
@@ -219,9 +224,9 @@ module Wrapper_tb #(parameter FILE = "nop");
 			if (verify) begin
 				if (exp_result !== regA) begin
 					$fdisplay(diffFile, "Reg: %2d Expected: %11d Actual: %11d",
-						rs1_test, exp_result, regA);
+						rs1_test, $signed(exp_result), $signed(regA));
 					$display("\tFAILED Reg: %2d Expected: %11d Actual: %11d",
-						rs1_test, exp_result, regA);
+						rs1_test, $signed(exp_result), $signed(regA));
 					errors = errors + 1;
 				end else begin
 					$display("\tPASSED Reg: %2d", rs1_test);
