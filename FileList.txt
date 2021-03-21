@@ -27,8 +27,13 @@ mux_4.v
 mux_8.v
 or_bitwise.v
 processor.v
+regFD.v
+regFD_tb.v
+regPC.v
+regPC_tb.v
 regfile.v
 regfile_tb.v
 register.v
+register65.v
 register_tb.v
 tristate_buffer.v
