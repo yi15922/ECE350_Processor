@@ -63,16 +63,45 @@ module processor(
 
 	/* YOUR CODE STARTS HERE */
 
-    wire [31:0] w_PC_in; 
+    wire [31:0] w_PC_in, w_incrementedPC; 
+    // TODO: add mux here when implementing branches
+    assign w_PC_in = w_incrementedPC; 
     regPC PC(address_imem, clock, 1'b1, reset, w_PC_in); 
 
     wire w_nextInsnOverflow;
-    adder_32 nextInsn(w_PC_in, w_nextInsnOverflow, address_imem, 32'b1, 1'b0); 
+    adder_32 nextInsn(w_incrementedPC, w_nextInsnOverflow, address_imem, 32'b1, 1'b0); 
 
     wire [31:0] w_FD_PC_out, w_FD_IR_out; 
     regFD FD(w_FD_PC_out, w_FD_IR_out, clock, 1'b1, reset, w_PC_in, q_imem); 
 
-	
+    assign ctrl_readRegA = w_FD_IR_out[21:17]; 
+    assign ctrl_readRegB = w_FD_IR_out[16:12]; 
+
+    wire [31:0] w_DX_PC_out, w_DX_A_out, w_DX_B_out, w_DX_IR_out; 
+    regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, clock, 1'b1, reset, w_FD_PC_out, w_FD_IR_out, data_readRegA, data_readRegB); 
+
+    wire [31:0] w_alu_in_B, w_aluOut; 
+    wire ctrl_immediate, w_alu_NE, w_alu_LT, w_alu_Overflow; 
+    wire [31:0] data_signedImmediate; 
+    signExtender extender(data_signedImmediate, w_DX_IR_out[16:0]); 
+    assign w_alu_in_B = ctrl_immediate ? data_signedImmediate : w_DX_B_out; 
+    alu ALU(w_DX_A_out, w_alu_in_B, w_DX_IR_out[6:2], w_DX_IR_out[11:7], w_aluOut, w_alu_NE, w_alu_LT, overflow); 
+
+    wire [31:0] w_jumpedPC; 
+    wire w_jumpAdderOverflow;
+    adder_32 jumpAdder(w_jumpedPC, w_jumpAdderOverflow, data_signedImmediate, w_DX_PC_out, 1'b0); 
+
+    wire [31:0] w_XM_O_out, w_XM_IR_out; 
+    regXM XM(w_XM_IR_out, w_XM_O_out, data, clock, 1'b1, reset, w_DX_IR_out, w_aluOut, w_DX_B_out);
+    assign address_dmem = w_XM_O_out; 
+    assign wrem = (w_XM_IR_out[31:27] == 5'b00111); 
+
+    wire [31:0] w_MW_IR_out, w_MW_O_out, w_MW_D_out; 
+    regMW MW(w_MW_IR_out, w_MW_O_out, w_MW_D_out, clock, 1'b1, reset, w_XM_IR_out, w_XM_O_out, q_dmem); 
+
+    wire w_isMemoryLoad = (w_MW_IR_out[31:27] == 5'b01000); 
+    assign data_writeReg = w_isMemoryLoad ? w_MW_D_out : w_MW_O_out; 
+    assign ctrl_writeReg = w_MW_IR_out[26:22]; 
 	/* END CODE */
 
 endmodule

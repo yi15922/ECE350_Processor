@@ -32,6 +32,8 @@ regDX.v
 regDX_tb.v
 regFD.v
 regFD_tb.v
+regMW.v
+regMW_tb.v
 regPC.v
 regPC_tb.v
 regXM.v
