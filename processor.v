@@ -76,22 +76,24 @@ module processor(
 
     assign ctrl_readRegA = w_FD_IR_out[21:17]; 
     assign ctrl_readRegB = w_FD_IR_out[16:12]; 
-    assign ctrl_writeEnable = (w_MW_IR_out[31:27] == 00000) || (w_MW_IR_out[31:27] == 00101) || 
-                                (w_MW_IR_out[31:27] == 00011) || (w_MW_IR_out[31:27] == 10101) || 
-                                (w_MW_IR_out[31:27] == 01000); 
+    assign ctrl_writeEnable = (w_MW_IR_out[31:27] == 5'b00000) || (w_MW_IR_out[31:27] == 5'b00101) || 
+                                (w_MW_IR_out[31:27] == 5'b00011) || (w_MW_IR_out[31:27] == 5'b10101) || 
+                                (w_MW_IR_out[31:27] == 5'b01000); 
 
     wire [31:0] w_DX_PC_out, w_DX_A_out, w_DX_B_out, w_DX_IR_out; 
     regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, clock, 1'b1, reset, w_FD_PC_out, w_FD_IR_out, data_readRegA, data_readRegB); 
 
     wire [31:0] w_alu_in_B, w_aluOut; 
     wire ctrl_immediate, w_alu_NE, w_alu_LT, w_alu_Overflow; 
-    assign ctrl_immediate = (w_DX_IR_out[31:27] == 00101) || (w_DX_IR_out[31:27] == 00111) ||
-                            (w_DX_IR_out[31:27] == 01000) || (w_DX_IR_out[31:27] == 00010) || 
-                            (w_DX_IR_out[31:27] == 00110); 
+    assign ctrl_immediate = (w_DX_IR_out[31:27] == 5'b00101) || (w_DX_IR_out[31:27] == 5'b00111) ||
+                            (w_DX_IR_out[31:27] == 5'b01000) || (w_DX_IR_out[31:27] == 5'b00010) || 
+                            (w_DX_IR_out[31:27] == 5'b00110); 
     wire [31:0] data_signedImmediate; 
     signExtender extender(data_signedImmediate, w_DX_IR_out[16:0]); 
     assign w_alu_in_B = ctrl_immediate ? data_signedImmediate : w_DX_B_out; 
-    alu ALU(w_DX_A_out, w_alu_in_B, w_DX_IR_out[6:2], w_DX_IR_out[11:7], w_aluOut, w_alu_NE, w_alu_LT, overflow); 
+    wire [4:0] w_aluOp; 
+    assign w_aluOp = ctrl_immediate ? 5'b0 : w_DX_IR_out[6:2];
+    alu ALU(w_DX_A_out, w_alu_in_B, w_aluOp, w_DX_IR_out[11:7], w_aluOut, w_alu_NE, w_alu_LT, overflow); 
 
     wire [31:0] w_jumpedPC; 
     wire w_jumpAdderOverflow;
@@ -109,5 +111,10 @@ module processor(
     assign data_writeReg = w_isMemoryLoad ? w_MW_D_out : w_MW_O_out; 
     assign ctrl_writeReg = w_MW_IR_out[26:22]; 
 	/* END CODE */
+
+    // always @(posedge clock) begin 
+        
+    //     $display("instruction: %b, writeReg: %d, aluop: %d, aluinB %d, aluout: %d", w_DX_IR_out, ctrl_writeReg, w_DX_IR_out[6:2], w_alu_in_B, w_aluOut); 
+    // end
 
 endmodule
