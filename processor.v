@@ -76,12 +76,18 @@ module processor(
 
     assign ctrl_readRegA = w_FD_IR_out[21:17]; 
     assign ctrl_readRegB = w_FD_IR_out[16:12]; 
+    assign ctrl_writeEnable = (w_MW_IR_out[31:27] == 00000) || (w_MW_IR_out[31:27] == 00101) || 
+                                (w_MW_IR_out[31:27] == 00011) || (w_MW_IR_out[31:27] == 10101) || 
+                                (w_MW_IR_out[31:27] == 01000); 
 
     wire [31:0] w_DX_PC_out, w_DX_A_out, w_DX_B_out, w_DX_IR_out; 
     regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, clock, 1'b1, reset, w_FD_PC_out, w_FD_IR_out, data_readRegA, data_readRegB); 
 
     wire [31:0] w_alu_in_B, w_aluOut; 
     wire ctrl_immediate, w_alu_NE, w_alu_LT, w_alu_Overflow; 
+    assign ctrl_immediate = (w_DX_IR_out[31:27] == 00101) || (w_DX_IR_out[31:27] == 00111) ||
+                            (w_DX_IR_out[31:27] == 01000) || (w_DX_IR_out[31:27] == 00010) || 
+                            (w_DX_IR_out[31:27] == 00110); 
     wire [31:0] data_signedImmediate; 
     signExtender extender(data_signedImmediate, w_DX_IR_out[16:0]); 
     assign w_alu_in_B = ctrl_immediate ? data_signedImmediate : w_DX_B_out; 
@@ -94,7 +100,7 @@ module processor(
     wire [31:0] w_XM_O_out, w_XM_IR_out; 
     regXM XM(w_XM_IR_out, w_XM_O_out, data, clock, 1'b1, reset, w_DX_IR_out, w_aluOut, w_DX_B_out);
     assign address_dmem = w_XM_O_out; 
-    assign wrem = (w_XM_IR_out[31:27] == 5'b00111); 
+    assign wren = (w_XM_IR_out[31:27] == 5'b00111); 
 
     wire [31:0] w_MW_IR_out, w_MW_O_out, w_MW_D_out; 
     regMW MW(w_MW_IR_out, w_MW_O_out, w_MW_D_out, clock, 1'b1, reset, w_XM_IR_out, w_XM_O_out, q_dmem); 

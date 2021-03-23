@@ -1,0 +1,46 @@
+#! /usr/local/Cellar/icarus-verilog/11.0/bin/vvp
+:ivl_version "11.0 (stable)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision - 10;
+:vpi_module "/usr/local/Cellar/icarus-verilog/11.0/lib/ivl/system.vpi";
+:vpi_module "/usr/local/Cellar/icarus-verilog/11.0/lib/ivl/vhdl_sys.vpi";
+:vpi_module "/usr/local/Cellar/icarus-verilog/11.0/lib/ivl/vhdl_textio.vpi";
+:vpi_module "/usr/local/Cellar/icarus-verilog/11.0/lib/ivl/v2005_math.vpi";
+:vpi_module "/usr/local/Cellar/icarus-verilog/11.0/lib/ivl/va_math.vpi";
+S_0x7fee31ea6590 .scope module, "signExtender_tb" "signExtender_tb" 2 1;
+ .timescale -9 -10;
+L_0x7fee28078008 .functor BUFT 1, C4<10000100100100101>, C4<0>, C4<0>, C4<0>;
+v0x7fee31e9d540_0 .net "data_in", 16 0, L_0x7fee28078008;  1 drivers
+v0x7fee31e9ac30_0 .net "data_out", 31 0, L_0x7fee31e90ae0;  1 drivers
+S_0x7fee31e51c60 .scope module, "extender" "signExtender" 2 8, 3 1 0, S_0x7fee31ea6590;
+ .timescale -9 -10;
+    .port_info 0 /OUTPUT 32 "data_out";
+    .port_info 1 /INPUT 17 "data_in";
+L_0x7fee31e909f0 .functor BUFZ 17, L_0x7fee28078008, C4<00000000000000000>, C4<00000000000000000>, C4<00000000000000000>;
+v0x7fee31e67bd0_0 .net *"_ivl_11", 16 0, L_0x7fee31e909f0;  1 drivers
+v0x7fee31e9ec70_0 .net *"_ivl_16", 14 0, L_0x7fee31e90bc0;  1 drivers
+L_0x7fee28078050 .functor BUFT 1, C4<1111111111111111>, C4<0>, C4<0>, C4<0>;
+v0x7fee31e9ed10_0 .net/2u *"_ivl_2", 15 0, L_0x7fee28078050;  1 drivers
+L_0x7fee28078098 .functor BUFT 1, C4<0000000000000000>, C4<0>, C4<0>, C4<0>;
+v0x7fee31e9edc0_0 .net/2u *"_ivl_4", 15 0, L_0x7fee28078098;  1 drivers
+v0x7fee31e9ee70_0 .net "data_in", 16 0, L_0x7fee28078008;  alias, 1 drivers
+v0x7fee31e9d310_0 .net "data_out", 31 0, L_0x7fee31e90ae0;  alias, 1 drivers
+v0x7fee31e9d3c0_0 .net "upperBits", 15 0, L_0x7fee31e9ae20;  1 drivers
+v0x7fee31e9d470_0 .net "w_sign", 0 0, L_0x7fee31e9ad20;  1 drivers
+L_0x7fee31e9ad20 .part L_0x7fee28078008, 16, 1;
+L_0x7fee31e9ae20 .functor MUXZ 16, L_0x7fee28078098, L_0x7fee28078050, L_0x7fee31e9ad20, C4<>;
+L_0x7fee31e90ae0 .concat8 [ 17 15 0 0], L_0x7fee31e909f0, L_0x7fee31e90bc0;
+L_0x7fee31e90bc0 .part L_0x7fee31e9ae20, 0, 15;
+    .scope S_0x7fee31ea6590;
+T_0 ;
+    %delay 500, 0;
+    %vpi_call 2 12 "$display", "datain: %b, dataout: %b", v0x7fee31e9d540_0, v0x7fee31e9ac30_0 {0 0 0};
+    %vpi_call 2 13 "$finish" {0 0 0};
+    %end;
+    .thread T_0;
+# The file index is used to find the file name in the following table.
+:file_names 4;
+    "N/A";
+    "<interactive>";
+    "signExtender_tb.v";
+    "signExtender.v";

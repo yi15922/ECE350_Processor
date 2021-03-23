@@ -43,4 +43,6 @@ regfile_tb.v
 register.v
 register65.v
 register_tb.v
+signExtender.v
+signExtender_tb.v
 tristate_buffer.v

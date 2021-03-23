@@ -29,10 +29,10 @@ module SRA(out, A, shamt);
     assign shift1[31] = sign; 
     twoToOneMux mux0(out, shamt[0], muxout1, shift1); 
 
-    initial begin 
-        #50; 
-        $display("Sign: %b", sign); 
-        $finish; 
-    end
+    // initial begin 
+    //     #50; 
+    //     $display("Sign: %b", sign); 
+    //     $finish; 
+    // end
 
 endmodule
