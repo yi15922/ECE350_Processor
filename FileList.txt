@@ -15,6 +15,7 @@ barrelshifter.v
 barrelshifter_tb.v
 claBlock.v
 claBlock_tb.v
+dataHazard.v
 decoder.v
 decoder_tb.v
 dffe.v

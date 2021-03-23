@@ -66,7 +66,7 @@ module processor(
     regPC PC(address_imem, clock, 1'b1, reset, w_PC_in); 
 
     wire w_nextInsnOverflow;
-    adder_32 nextInsn(w_PC_in, w_nextInsnOverflow, address_imem, 32'b1, 32'b0); 
+    adder_32 nextInsn(w_PC_in, w_nextInsnOverflow, address_imem, 32'b1, 1'b0); 
 
     wire [31:0] w_FD_PC_out, w_FD_IR_out; 
     regFD FD(w_FD_PC_out, w_FD_IR_out, clock, 1'b1, reset, w_PC_in, q_imem); 
