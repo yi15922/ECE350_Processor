@@ -34,6 +34,8 @@ regFD.v
 regFD_tb.v
 regPC.v
 regPC_tb.v
+regXM.v
+regXM_tb.v
 regfile.v
 regfile_tb.v
 register.v
