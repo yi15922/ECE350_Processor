@@ -62,6 +62,7 @@ module processor(
 	input [31:0] data_readRegA, data_readRegB;
 
 	/* YOUR CODE STARTS HERE */
+
     wire [31:0] w_PC_in; 
     regPC PC(address_imem, clock, 1'b1, reset, w_PC_in); 
 
