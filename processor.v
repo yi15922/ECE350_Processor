@@ -75,13 +75,14 @@ module processor(
     regFD FD(w_FD_PC_out, w_FD_IR_out, clock, 1'b1, reset, w_PC_in, q_imem); 
 
     assign ctrl_readRegA = w_FD_IR_out[21:17]; 
-    assign ctrl_readRegB = w_FD_IR_out[16:12]; 
+    // Making read data from $rd if this is a sw instruction
+    assign ctrl_readRegB = w_FD_IR_out[31:27] == 5'b00111 ? w_FD_IR_out[26:22] : w_FD_IR_out[16:12]; 
     assign ctrl_writeEnable = (w_MW_IR_out[31:27] == 5'b00000) || (w_MW_IR_out[31:27] == 5'b00101) || 
                                 (w_MW_IR_out[31:27] == 5'b00011) || (w_MW_IR_out[31:27] == 5'b10101) || 
                                 (w_MW_IR_out[31:27] == 5'b01000); 
 
     wire [31:0] w_DX_PC_out, w_DX_A_out, w_DX_B_out, w_DX_IR_out; 
-    regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, clock, 1'b1, reset, w_FD_PC_out, w_FD_IR_out, data_readRegA, data_readRegB); 
+    regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, !clock, 1'b1, reset, w_FD_PC_out, w_FD_IR_out, data_readRegA, data_readRegB); 
 
     wire [31:0] w_alu_in_B, w_aluOut; 
     wire ctrl_immediate, w_alu_NE, w_alu_LT, w_alu_Overflow; 
@@ -100,12 +101,12 @@ module processor(
     adder_32 jumpAdder(w_jumpedPC, w_jumpAdderOverflow, data_signedImmediate, w_DX_PC_out, 1'b0); 
 
     wire [31:0] w_XM_O_out, w_XM_IR_out; 
-    regXM XM(w_XM_IR_out, w_XM_O_out, data, clock, 1'b1, reset, w_DX_IR_out, w_aluOut, w_DX_B_out);
+    regXM XM(w_XM_IR_out, w_XM_O_out, data, !clock, 1'b1, reset, w_DX_IR_out, w_aluOut, w_DX_B_out);
     assign address_dmem = w_XM_O_out; 
     assign wren = (w_XM_IR_out[31:27] == 5'b00111); 
 
     wire [31:0] w_MW_IR_out, w_MW_O_out, w_MW_D_out; 
-    regMW MW(w_MW_IR_out, w_MW_O_out, w_MW_D_out, clock, 1'b1, reset, w_XM_IR_out, w_XM_O_out, q_dmem); 
+    regMW MW(w_MW_IR_out, w_MW_O_out, w_MW_D_out, !clock, 1'b1, reset, w_XM_IR_out, w_XM_O_out, q_dmem); 
 
     wire w_isMemoryLoad = (w_MW_IR_out[31:27] == 5'b01000); 
     assign data_writeReg = w_isMemoryLoad ? w_MW_D_out : w_MW_O_out; 
@@ -114,7 +115,7 @@ module processor(
 
     // always @(posedge clock) begin 
         
-    //     $display("instruction: %b, writeReg: %d, aluop: %d, aluinB %d, aluout: %d", w_DX_IR_out, ctrl_writeReg, w_DX_IR_out[6:2], w_alu_in_B, w_aluOut); 
+    //     $display("registerWE: %b, regIn: %d, dataIn: %d, dataOut: %d, lw: %b, sw: %b, address: %d", ctrl_writeEnable, data_writeReg, w_MW_D_out, q_dmem, w_isMemoryLoad, wren, address_dmem); 
     // end
 
 endmodule
