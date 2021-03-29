@@ -64,6 +64,7 @@ module processor(
 	/* YOUR CODE STARTS HERE */
 
     wire [31:0] w_PC_in, w_incrementedPC; 
+    wire w_stall; 
     // TODO: add mux here when implementing branches
     assign w_PC_in = w_incrementedPC; 
     regPC PC(address_imem, clock, 1'b1, reset, w_PC_in); 
@@ -81,27 +82,38 @@ module processor(
                                 (w_MW_IR_out[31:27] == 5'b00011) || (w_MW_IR_out[31:27] == 5'b10101) || 
                                 (w_MW_IR_out[31:27] == 5'b01000); 
 
-    wire [31:0] w_DX_PC_out, w_DX_A_out, w_DX_B_out, w_DX_IR_out; 
-    regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, !clock, 1'b1, reset, w_FD_PC_out, w_FD_IR_out, data_readRegA, data_readRegB); 
+    wire [31:0] w_DX_PC_out, w_DX_A_out, w_DX_B_out, w_DX_IR_out, w_DX_IR_in; 
+    assign w_DX_IR_in = w_stall ? 32'd0 : w_FD_IR_out; 
+    regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, !clock, 1'b1, reset, w_FD_IR_out, w_FD_IR_out, data_readRegA, data_readRegB); 
 
-    wire [31:0] w_alu_in_B, w_aluOut; 
+    wire [31:0] w_alu_in_A, w_alu_in_B, w_aluOut; 
     wire ctrl_immediate, w_alu_NE, w_alu_LT, w_alu_Overflow; 
     assign ctrl_immediate = (w_DX_IR_out[31:27] == 5'b00101) || (w_DX_IR_out[31:27] == 5'b00111) ||
                             (w_DX_IR_out[31:27] == 5'b01000) || (w_DX_IR_out[31:27] == 5'b00010) || 
                             (w_DX_IR_out[31:27] == 5'b00110); 
-    wire [31:0] data_signedImmediate; 
+    wire [31:0] data_signedImmediate, regoutB, w_XM_O_out; 
     signExtender extender(data_signedImmediate, w_DX_IR_out[16:0]); 
-    assign w_alu_in_B = ctrl_immediate ? data_signedImmediate : w_DX_B_out; 
+
+    wire [1:0] select_regoutBMux; 
+    mux_4 regoutBMux(regoutB, select_regoutBMux, w_XM_O_out, data_writeReg, w_DX_B_out, 32'bz); 
+
+    assign w_alu_in_B = ctrl_immediate ? data_signedImmediate : regoutB; 
     wire [4:0] w_aluOp; 
     assign w_aluOp = ctrl_immediate ? 5'b0 : w_DX_IR_out[6:2];
-    alu ALU(w_DX_A_out, w_alu_in_B, w_aluOp, w_DX_IR_out[11:7], w_aluOut, w_alu_NE, w_alu_LT, overflow); 
+    
+    wire [1:0] select_ALUinAMux; 
+    mux_4 ALUinAMux(w_alu_in_A, select_ALUinAMux, w_XM_O_out, data_writeReg, w_DX_A_out, 32'bz); 
+    alu ALU(w_alu_in_A, w_alu_in_B, w_aluOp, w_DX_IR_out[11:7], w_aluOut, w_alu_NE, w_alu_LT, overflow); 
 
     wire [31:0] w_jumpedPC; 
     wire w_jumpAdderOverflow;
     adder_32 jumpAdder(w_jumpedPC, w_jumpAdderOverflow, data_signedImmediate, w_DX_PC_out, 1'b0); 
 
-    wire [31:0] w_XM_O_out, w_XM_IR_out; 
-    regXM XM(w_XM_IR_out, w_XM_O_out, data, !clock, 1'b1, reset, w_DX_IR_out, w_aluOut, w_DX_B_out);
+    wire [31:0] w_XM_IR_out, w_XM_B_out; 
+    wire select_dmemMux; 
+    assign data = select_dmemMux ? w_XM_B_out : data_writeReg; 
+
+    regXM XM(w_XM_IR_out, w_XM_O_out, w_XM_B_out, !clock, 1'b1, reset, w_DX_IR_out, w_aluOut, w_DX_B_out);
     assign address_dmem = w_XM_O_out; 
     assign wren = (w_XM_IR_out[31:27] == 5'b00111); 
 
@@ -111,11 +123,13 @@ module processor(
     wire w_isMemoryLoad = (w_MW_IR_out[31:27] == 5'b01000); 
     assign data_writeReg = w_isMemoryLoad ? w_MW_D_out : w_MW_O_out; 
     assign ctrl_writeReg = w_MW_IR_out[26:22]; 
+
+    bypassControl bypass(select_dmemMux, select_ALUinAMux, select_regoutBMux, w_DX_IR_out, w_XM_IR_out, w_MW_IR_out); 
 	/* END CODE */
 
-    // always @(posedge clock) begin 
+    always @(posedge clock) begin 
         
-    //     $display("registerWE: %b, regIn: %d, dataIn: %d, dataOut: %d, lw: %b, sw: %b, address: %d", ctrl_writeEnable, data_writeReg, w_MW_D_out, q_dmem, w_isMemoryLoad, wren, address_dmem); 
-    // end
+        $display("lw: %b, sw: %b, dmemIn: %d, regfileIn: %d, instruction: %b", w_isMemoryLoad, wren, data, data_writeReg, w_FD_IR_out); 
+    end
 
 endmodule

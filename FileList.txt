@@ -13,6 +13,7 @@ alu_tb.v
 and_bitwise.v
 barrelshifter.v
 barrelshifter_tb.v
+bypassControl.v
 claBlock.v
 claBlock_tb.v
 dataHazard.v
@@ -45,4 +46,5 @@ register65.v
 register_tb.v
 signExtender.v
 signExtender_tb.v
+stallControl.v
 tristate_buffer.v
