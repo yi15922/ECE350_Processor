@@ -20,7 +20,7 @@ module bypassControl(dmemMux, ALUinAMux, regoutBMux, DX_IR, XM_IR, MW_IR);
     assign regoutBMux_intermediate[1] = !(DX_IR_RT == XM_IR_RD) && !(DX_IR_RT == MW_IR_RD); 
 
     assign ALUinAMux = zeroRS ? 2'b10 : ALUinAMux_intermediate; 
-    assign regoutBMux = zeroRT? 2'b10 : regoutBMux_intermediate; 
+    assign regoutBMux = zeroRT ? 2'b10 : regoutBMux_intermediate; 
 
     wire isMemoryStore; 
     assign isMemoryStore = XM_IR[31:27] == 5'b00111; 
@@ -31,9 +31,9 @@ module bypassControl(dmemMux, ALUinAMux, regoutBMux, DX_IR, XM_IR, MW_IR);
     // assign ALUinAMux = 2'd2; 
     // assign regoutBMux = 2'd2; 
 
-    always @(MW_IR, DX_IR, XM_IR) begin
-        $display("MW bypass: %b, ALUinAMux: %d, regoutBMux: %d, DX_RS: %d, DX_RT: %d, XM_RD: %d, MW_RD: %d", !dmemMux, ALUinAMux, regoutBMux, DX_IR_RS, DX_IR_RT, XM_IR_RD, MW_IR_RD); 
-    end
+    // always @(MW_IR, DX_IR, XM_IR) begin
+    //     $display("MW bypass: %b, ALUinAMux: %d, regoutBMux: %d, DX_RS: %d, DX_RT: %d, XM_RD: %d, MW_RD: %d", !dmemMux, ALUinAMux, regoutBMux, DX_IR_RS, DX_IR_RT, XM_IR_RD, MW_IR_RD); 
+    // end
 
 
 endmodule
