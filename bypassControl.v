@@ -4,8 +4,8 @@ module bypassControl(dmemMux, ALUinAMux, regoutBMux, DX_IR, XM_IR, MW_IR);
     output dmemMux; 
 
     wire [4:0] DX_IR_A, DX_IR_B, XM_IR_RD, MW_IR_RD; 
-    assign DX_IR_A = DX_IR[21:17]; 
-    // accounting for store case
+    // Make A rd if this is a jr
+    assign DX_IR_A = DX_IR[31:27] == 5'b00100 ? DX_IR[26:22] : DX_IR[21:17]; 
     assign DX_IR_B = DX_IR[16:12];
     assign XM_IR_RD = XM_IR[26:22]; 
     assign MW_IR_RD = MW_IR[26:22]; 
