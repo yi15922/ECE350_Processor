@@ -105,7 +105,7 @@ module processor(
     assign X_opcode = w_DX_IR_out[31:27]; 
 
     assign w_jump = (X_opcode == 5'b00001) || (X_opcode == 5'b00011) || (X_opcode == 5'b00100); 
-    assign w_jumpAddress = (X_opcode == 00100) ? w_DX_A_out : w_DX_IR_out[26:0]; 
+    assign w_jumpAddress = (X_opcode == 5'b00100) ? w_alu_in_A : w_DX_IR_out[26:0]; 
 
     wire [31:0] w_alu_in_A, w_alu_in_B, w_aluOut; 
     wire ctrl_immediate, w_alu_NE, w_alu_LT, w_alu_Overflow; 
