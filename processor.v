@@ -67,13 +67,13 @@ module processor(
     wire w_stall; 
     // TODO: add mux here when implementing branches
     assign w_PC_in = w_incrementedPC; 
-    regPC PC(address_imem, clock, 1'b1, reset, w_PC_in); 
+    regPC PC(address_imem, !clock, 1'b1, reset, w_PC_in); 
 
     wire w_nextInsnOverflow;
     adder_32 nextInsn(w_incrementedPC, w_nextInsnOverflow, address_imem, 32'b1, 1'b0); 
 
     wire [31:0] w_FD_PC_out, w_FD_IR_out; 
-    regFD FD(w_FD_PC_out, w_FD_IR_out, clock, 1'b1, reset, w_PC_in, q_imem); 
+    regFD FD(w_FD_PC_out, w_FD_IR_out, !clock, 1'b1, reset, w_PC_in, q_imem); 
 
     assign ctrl_readRegA = w_FD_IR_out[21:17]; 
     // Making read data from $rd if this is a sw instruction
