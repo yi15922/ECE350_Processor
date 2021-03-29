@@ -63,52 +63,66 @@ module processor(
 
 	/* YOUR CODE STARTS HERE */
 
-    wire [31:0] w_PC_in, w_incrementedPC, w_jumpedPC; 
+    wire [31:0] w_PC_in, w_incrementedPC, w_branchedPC; 
     
-    wire w_stall; 
+    wire w_stall, w_branch; 
     // TODO: add mux here when implementing branches
-    assign w_PC_in = jump ? w_jumpedPC : w_incrementedPC; 
+    assign w_PC_in = w_branch ? w_branchedPC : w_incrementedPC; 
     regPC PC(address_imem, clock, !w_stall, reset, w_PC_in); 
 
     wire w_nextInsnOverflow;
     adder_32 nextInsn(w_incrementedPC, w_nextInsnOverflow, address_imem, 32'b1, 1'b0); 
 
-    wire [31:0] w_FD_PC_out, w_FD_IR_out; 
-    regFD FD(w_FD_PC_out, w_FD_IR_out, clock, !w_stall, reset, w_PC_in, q_imem); 
+    wire [31:0] w_FD_PC_out, w_FD_IR_out, w_FD_IR_in; 
+    assign w_FD_IR_in = w_branch ? 32'd0 : q_imem; 
+    regFD FD(w_FD_PC_out, w_FD_IR_out, clock, !w_stall, reset, w_PC_in, w_FD_IR_in); 
 
-    assign ctrl_readRegA = w_FD_IR_out[21:17]; 
-    // Making read data from $rd if this is a sw instruction
-    assign ctrl_readRegB = w_FD_IR_out[31:27] == 5'b00111 ? w_FD_IR_out[26:22] : w_FD_IR_out[16:12]; 
+    wire D_BLT, D_BNE; 
+    assign D_BLT = w_FD_IR_out[31:27] == 5'b00110; 
+    assign D_BNE = w_FD_IR_out[31:27] == 5'b00010; 
+    // Read from $rd if this is a branch
+    assign ctrl_readRegA =  (D_BNE || D_BLT) ? w_FD_IR_out[26:22] : w_FD_IR_out[21:17]; 
+    // Read from $rs if this is a branch, read from $rd if is a store, read from rt otherwise. 
+    wire [4:0] readRegBstore; 
+    assign readRegBstore = w_FD_IR_out[31:27] == 5'b00111 ? w_FD_IR_out[26:22] : w_FD_IR_out[16:12]; 
+    assign ctrl_readRegB = (D_BNE || D_BLT) ? w_FD_IR_out[21:17] : readRegBstore; 
+
     assign ctrl_writeEnable = (w_MW_IR_out[31:27] == 5'b00000) || (w_MW_IR_out[31:27] == 5'b00101) || 
                                 (w_MW_IR_out[31:27] == 5'b00011) || (w_MW_IR_out[31:27] == 5'b10101) || 
                                 (w_MW_IR_out[31:27] == 5'b01000); 
 
     wire [31:0] w_DX_PC_out, w_DX_A_out, w_DX_B_out, w_DX_IR_out, w_DX_IR_in; 
-    assign w_DX_IR_in = w_stall ? 32'd0 : w_FD_IR_out; 
+    assign w_DX_IR_in = (w_stall || w_branch) ? 32'd0 : w_FD_IR_out; 
     regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, clock, 1'b1, reset, w_FD_PC_out, w_DX_IR_in, data_readRegA, data_readRegB); 
 
     wire [31:0] w_alu_in_A, w_alu_in_B, w_aluOut; 
     wire ctrl_immediate, w_alu_NE, w_alu_LT, w_alu_Overflow; 
     assign ctrl_immediate = (w_DX_IR_out[31:27] == 5'b00101) || (w_DX_IR_out[31:27] == 5'b00111) ||
-                            (w_DX_IR_out[31:27] == 5'b01000) || (w_DX_IR_out[31:27] == 5'b00010) || 
-                            (w_DX_IR_out[31:27] == 5'b00110); 
+                            (w_DX_IR_out[31:27] == 5'b01000);
     wire [31:0] data_signedImmediate, regoutB, w_XM_O_out; 
     signExtender extender(data_signedImmediate, w_DX_IR_out[16:0]); 
 
     wire [1:0] select_regoutBMux; 
+    wire X_BLT, X_BNE; 
     mux_4 regoutBMux(regoutB, select_regoutBMux, w_XM_O_out, data_writeReg, w_DX_B_out, 32'bz); 
 
     assign w_alu_in_B = ctrl_immediate ? data_signedImmediate : regoutB; 
+    // Make ALUop subtract if branching
+    wire [4:0] ALUsub; 
+    assign ALUsub = (X_BLT || X_BNE) ? 5'b00001 : w_DX_IR_out[6:2]; 
     wire [4:0] w_aluOp; 
-    assign w_aluOp = ctrl_immediate ? 5'b0 : w_DX_IR_out[6:2];
+    assign w_aluOp = ctrl_immediate ? 5'b0 : ALUsub; 
     
     wire [1:0] select_ALUinAMux; 
     mux_4 ALUinAMux(w_alu_in_A, select_ALUinAMux, w_XM_O_out, data_writeReg, w_DX_A_out, 32'bz); 
-    alu ALU(w_alu_in_A, w_alu_in_B, w_aluOp, w_DX_IR_out[11:7], w_aluOut, w_alu_NE, w_alu_LT, overflow); 
+    alu ALU(w_alu_in_A, w_alu_in_B, w_aluOp, w_DX_IR_out[11:7], w_aluOut, w_alu_NE, w_alu_LT, w_alu_Overflow); 
+    assign X_BLT = w_DX_IR_out[31:27] == 5'b00110; 
+    assign X_BNE = w_DX_IR_out[31:27] == 5'b00010; 
+    assign w_branch = (X_BLT && w_alu_LT) || (X_BNE && w_alu_NE); 
 
    
-    wire w_jumpAdderOverflow;
-    adder_32 jumpAdder(w_jumpedPC, w_jumpAdderOverflow, data_signedImmediate, w_DX_PC_out, 1'b0); 
+    wire w_branchAdderOverflow;
+    adder_32 branchAdder(w_branchedPC, w_branchAdderOverflow, data_signedImmediate, w_DX_PC_out, 1'b0); 
 
     wire [31:0] w_XM_IR_out, w_XM_B_out; 
     wire select_dmemMux; 
