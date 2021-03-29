@@ -67,13 +67,13 @@ module processor(
     wire w_stall; 
     // TODO: add mux here when implementing branches
     assign w_PC_in = w_incrementedPC; 
-    regPC PC(address_imem, !clock, 1'b1, reset, w_PC_in); 
+    regPC PC(address_imem, clock, 1'b1, reset, w_PC_in); 
 
     wire w_nextInsnOverflow;
     adder_32 nextInsn(w_incrementedPC, w_nextInsnOverflow, address_imem, 32'b1, 1'b0); 
 
     wire [31:0] w_FD_PC_out, w_FD_IR_out; 
-    regFD FD(w_FD_PC_out, w_FD_IR_out, !clock, 1'b1, reset, w_PC_in, q_imem); 
+    regFD FD(w_FD_PC_out, w_FD_IR_out, clock, 1'b1, reset, w_PC_in, q_imem); 
 
     assign ctrl_readRegA = w_FD_IR_out[21:17]; 
     // Making read data from $rd if this is a sw instruction
@@ -84,7 +84,7 @@ module processor(
 
     wire [31:0] w_DX_PC_out, w_DX_A_out, w_DX_B_out, w_DX_IR_out, w_DX_IR_in; 
     assign w_DX_IR_in = w_stall ? 32'd0 : w_FD_IR_out; 
-    regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, !clock, 1'b1, reset, w_FD_IR_out, w_FD_IR_out, data_readRegA, data_readRegB); 
+    regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, clock, 1'b1, reset, w_FD_IR_out, w_FD_IR_out, data_readRegA, data_readRegB); 
 
     wire [31:0] w_alu_in_A, w_alu_in_B, w_aluOut; 
     wire ctrl_immediate, w_alu_NE, w_alu_LT, w_alu_Overflow; 
@@ -113,12 +113,12 @@ module processor(
     wire select_dmemMux; 
     assign data = select_dmemMux ? w_XM_B_out : data_writeReg; 
 
-    regXM XM(w_XM_IR_out, w_XM_O_out, w_XM_B_out, !clock, 1'b1, reset, w_DX_IR_out, w_aluOut, w_DX_B_out);
+    regXM XM(w_XM_IR_out, w_XM_O_out, w_XM_B_out, clock, 1'b1, reset, w_DX_IR_out, w_aluOut, w_DX_B_out);
     assign address_dmem = w_XM_O_out; 
     assign wren = (w_XM_IR_out[31:27] == 5'b00111); 
 
     wire [31:0] w_MW_IR_out, w_MW_O_out, w_MW_D_out; 
-    regMW MW(w_MW_IR_out, w_MW_O_out, w_MW_D_out, !clock, 1'b1, reset, w_XM_IR_out, w_XM_O_out, q_dmem); 
+    regMW MW(w_MW_IR_out, w_MW_O_out, w_MW_D_out, clock, 1'b1, reset, w_XM_IR_out, w_XM_O_out, q_dmem); 
 
     wire w_isMemoryLoad = (w_MW_IR_out[31:27] == 5'b01000); 
     assign data_writeReg = w_isMemoryLoad ? w_MW_D_out : w_MW_O_out; 

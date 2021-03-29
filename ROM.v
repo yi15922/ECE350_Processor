@@ -12,7 +12,7 @@ module ROM #(parameter DATA_WIDTH = 32, ADDRESS_WIDTH = 12, DEPTH = 4096, MEMFIL
         end
     end
     
-    always @(posedge clk) begin
+    always @(posedge !clk) begin
         dataOut <= MemoryArray[addr];
     end
 endmodule

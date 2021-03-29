@@ -20,13 +20,13 @@ module regfile (
 
 	genvar i; 
 	
-	register zeroRegister(data_readRegA, data_readRegB, clock, 1'b0, w_readDecoder1[0], w_readDecoder2[0], reset, 0); 
+	register zeroRegister(data_readRegA, data_readRegB, !clock, 1'b0, w_readDecoder1[0], w_readDecoder2[0], reset, 0); 
 
 	generate
 		for (i = 1; i < 32; i = i + 1) begin: loop
 			wire w_write; 
 			and write(w_write, ctrl_writeEnable, w_writeDecoder[i]); 
-			register oneRegister(data_readRegA, data_readRegB, clock, w_write, w_readDecoder1[i], w_readDecoder2[i], ctrl_reset, data_writeReg); 
+			register oneRegister(data_readRegA, data_readRegB, !clock, w_write, w_readDecoder1[i], w_readDecoder2[i], ctrl_reset, data_writeReg); 
 		end
 	endgenerate
 endmodule
