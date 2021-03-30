@@ -98,7 +98,7 @@ module processor(
     wire [31:0] w_DX_PC_out, w_DX_A_out, w_DX_B_out, w_DX_IR_out, w_DX_IR_in; 
     assign w_jr = w_DX_IR_out[31:27] == 5'b00100; 
 
-    wire DX_writeEnable; 
+    wire DX_writeEnable, w_multdivReady, isMult, isDiv, w_multdivException; 
     assign DX_writeEnable = !((isMult || isDiv) && !w_multdivReady); 
     assign w_DX_IR_in = (w_stall || w_branch || w_jump) ? 32'd0 : w_FD_IR_out; 
     regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, clock, DX_writeEnable, reset, w_FD_PC_out, w_DX_IR_in, data_readRegA, data_readRegB); 
@@ -109,9 +109,9 @@ module processor(
     assign X_aluop = w_DX_IR_out[6:2]; 
     wire X_isRType; 
     assign X_isRType = X_opcode == 5'b00000; 
+    wire [31:0] w_alu_in_A, w_alu_in_B, w_aluOut; 
 
     /* MULTDIV STAGE */ 
-    wire isMult, isDiv, w_multdivException, w_multdivReady;
     wire [31:0] w_multdivOut;  
     assign isMult = X_isRType && (X_aluop == 5'b00110); 
     assign isDiv = X_isRType && (X_aluop == 5'b00111); 
@@ -124,7 +124,6 @@ module processor(
     assign w_jump = (X_opcode == 5'b00001) || (X_isjal) || (X_opcode == 5'b00100); 
     assign w_jumpAddress = (X_opcode == 5'b00100) ? w_alu_in_A : w_DX_IR_out[26:0]; 
 
-    wire [31:0] w_alu_in_A, w_alu_in_B, w_aluOut; 
     wire ctrl_immediate, w_alu_NE, w_alu_LT, w_alu_Overflow; 
     assign ctrl_immediate = (X_opcode == 5'b00101) || (X_opcode == 5'b00111) ||
                             (X_opcode == 5'b01000);

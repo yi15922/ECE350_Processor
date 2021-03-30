@@ -20,7 +20,7 @@ module regfile (
 
 	genvar i; 
 	
-	register zeroRegister(data_readRegA, data_readRegB, !clock, 1'b0, w_readDecoder1[0], w_readDecoder2[0], reset, 0); 
+	register zeroRegister(data_readRegA, data_readRegB, !clock, 1'b0, w_readDecoder1[0], w_readDecoder2[0], ctrl_reset, 0); 
 
 	generate
 		for (i = 1; i < 32; i = i + 1) begin: loop
