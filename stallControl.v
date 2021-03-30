@@ -1,6 +1,6 @@
-module stallControl(stall, FD_IR, DX_IR, multReady);  
+module stallControl(stall, FD_IR, DX_IR, multDivReady, clock);  
     input [31:0] FD_IR, DX_IR; 
-    input multReady; 
+    input multDivReady, clock; 
     output stall; 
 
     wire [4:0] FD_IR_RS, FD_IR_RT, DX_IR_RD; 
@@ -11,12 +11,15 @@ module stallControl(stall, FD_IR, DX_IR, multReady);
     wire [4:0] D_opcode, D_aluop; 
     assign D_opcode = FD_IR[31:27]; 
     assign D_aluop = FD_IR[6:2]; 
-    wire X_isRType; 
-    assign X_isRType = D_opcode == 5'b00000; 
+    wire D_isRType; 
+    assign D_isRType = D_opcode == 5'b00000; 
     wire isMult, isDiv, isMultDiv;
-    assign isMult = X_isRType && (D_aluop == 5'b00110); 
-    assign isDiv = X_isRType && (D_aluop == 5'b00111); 
+    assign isMult = D_isRType && (D_aluop == 5'b00110); 
+    assign isDiv = D_isRType && (D_aluop == 5'b00111); 
     assign isMultDiv = isMult || isDiv; 
+
+    wire multdivInProgress; 
+    dffe multdivRecord(multdivInProgress, isMultDiv, clock, isMultDiv, multDivReady); 
 
     
 
@@ -25,7 +28,7 @@ module stallControl(stall, FD_IR, DX_IR, multReady);
     assign DXLoad = DX_IR[31:27] == 5'b01000; 
     assign FDStore = FD_IR[31:20] == 5'b00111; 
 
-    assign stall = DXLoad && ((FD_IR_RS == DX_IR_RD) || ((FD_IR_RT == DX_IR_RD) && (!FDStore))) || (isMultDiv && !multReady); 
+    assign stall = DXLoad && ((FD_IR_RS == DX_IR_RD) || ((FD_IR_RT == DX_IR_RD) && (!FDStore))) || multdivInProgress; 
 
 
     // always @(FD_IR) begin

@@ -119,7 +119,7 @@ module processor(
     assign isDiv = X_isRType && (X_aluop == 5'b00111); 
     multdiv MultDiv(w_alu_in_A, w_alu_in_B, isMult, isDiv, clock, w_multdivOut, w_multdivException, w_multdivReady); 
     wire [31:0] w_PW_IR_out, w_PW_P_out; 
-    regPW PW(w_PW_IR_out, w_PW_P_out, clock, w_multdivReady, reset, w_DX_IR_out, w_multdivOut);
+    regPW PW(w_PW_IR_out, w_PW_P_out, clock, isMult || isDiv, reset, w_DX_IR_out, w_multdivOut);
 
     
 
@@ -179,7 +179,7 @@ module processor(
     assign ctrl_writeReg = (X_isjal) ? 5'd31 : w_MW_IR_out[26:22]; 
 
     bypassControl bypass(select_dmemMux, select_ALUinAMux, select_regoutBMux, w_DX_IR_out, w_XM_IR_out, w_MW_IR_out); 
-	stallControl stall(w_stall, w_FD_IR_out, w_DX_IR_out, w_multdivReady); 
+	stallControl stall(w_stall, w_FD_IR_out, w_DX_IR_out, w_multdivReady, clock); 
     /* END CODE */
 
     // always @(posedge clock) begin 
