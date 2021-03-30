@@ -81,8 +81,6 @@ module processor(
     regFD FD(w_FD_PC_out, w_FD_IR_out, clock, !w_stall, reset, w_PC_in, w_FD_IR_in); 
 
     wire D_BLT, D_BNE; 
-    wire D_opcode; 
-    assign D_opcode = w_FD_IR_out[31:27]; 
     assign D_BLT = w_FD_IR_out[31:27] == 5'b00110; 
     assign D_BNE = w_FD_IR_out[31:27] == 5'b00010; 
     // Read from $rd if this is a branch or jr
@@ -101,9 +99,9 @@ module processor(
     assign w_jr = w_DX_IR_out[31:27] == 5'b00100; 
 
     wire DX_writeEnable, w_multdivReady, isMult, isDiv, w_multdivException; 
-    //assign DX_writeEnable = !((isMult || isDiv) && !w_multdivReady); 
+    assign DX_writeEnable = !((isMult || isDiv) && !w_multdivReady); 
     assign w_DX_IR_in = (w_stall || w_branch || w_jump) ? 32'd0 : w_FD_IR_out; 
-    regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, clock, 1'b1, reset, w_FD_PC_out, w_DX_IR_in, data_readRegA, data_readRegB); 
+    regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, clock, DX_writeEnable, reset, w_FD_PC_out, w_DX_IR_in, data_readRegA, data_readRegB); 
     
     wire X_isjal; 
     wire [4:0] X_opcode, X_aluop; 
@@ -119,7 +117,7 @@ module processor(
     assign isDiv = X_isRType && (X_aluop == 5'b00111); 
     multdiv MultDiv(w_alu_in_A, w_alu_in_B, isMult, isDiv, clock, w_multdivOut, w_multdivException, w_multdivReady); 
     wire [31:0] w_PW_IR_out, w_PW_P_out; 
-    regPW PW(w_PW_IR_out, w_PW_P_out, clock, w_multdivReady, reset, w_DX_IR_out, w_multdivOut);
+    regPW PW(w_PW_IR_out, w_PW_P_out, clock, 1'b1, reset, w_DX_IR_out, w_multdivOut);
 
     
 

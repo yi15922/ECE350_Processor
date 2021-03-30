@@ -8,14 +8,16 @@ module stallControl(stall, FD_IR, DX_IR, multReady);
     assign FD_IR_RT = FD_IR[16:12]; 
     assign DX_IR_RD = DX_IR[26:22]; 
 
-    wire [4:0] D_opcode, D_aluop; 
-    assign D_opcode = FD_IR[31:27]; 
-    assign D_aluop = FD_IR[6:2]; 
+    wire [4:0] X_opcode, X_aluop; 
+    assign X_opcode = DX_IR[31:27]; 
+    assign X_aluop = DX_IR[6:2]; 
     wire X_isRType; 
-    assign X_isRType = D_opcode == 5'b00000; 
+    assign X_isRType = X_opcode == 5'b00000; 
+
+    /* MULTDIV STAGE */ 
     wire isMult, isDiv, isMultDiv;
-    assign isMult = X_isRType && (D_aluop == 5'b00110); 
-    assign isDiv = X_isRType && (D_aluop == 5'b00111); 
+    assign isMult = X_isRType && (X_aluop == 5'b00110); 
+    assign isDiv = X_isRType && (X_aluop == 5'b00111); 
     assign isMultDiv = isMult || isDiv; 
 
     
