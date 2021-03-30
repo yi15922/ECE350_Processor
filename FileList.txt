@@ -40,6 +40,7 @@ mux_4.v
 mux_8.v
 or_bitwise.v
 processor.v
+reg32.v
 regDX.v
 regDX_tb.v
 regFD.v

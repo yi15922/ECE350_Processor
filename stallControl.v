@@ -21,6 +21,9 @@ module stallControl(stall, FD_IR, DX_IR, multDivReady, clock);
     wire multdivInProgress; 
     dffe multdivRecord(multdivInProgress, isMultDiv, clock, isMultDiv, multDivReady); 
 
+    wire multdivStall; 
+    assign multdivStall = isMultDiv ? 1'b1 : multdivInProgress; 
+
     
 
     wire DXLoad, FDStore; 
@@ -28,7 +31,7 @@ module stallControl(stall, FD_IR, DX_IR, multDivReady, clock);
     assign DXLoad = DX_IR[31:27] == 5'b01000; 
     assign FDStore = FD_IR[31:20] == 5'b00111; 
 
-    assign stall = DXLoad && ((FD_IR_RS == DX_IR_RD) || ((FD_IR_RT == DX_IR_RD) && (!FDStore))) || multdivInProgress; 
+    assign stall = DXLoad && ((FD_IR_RS == DX_IR_RD) || ((FD_IR_RT == DX_IR_RD) && (!FDStore))); 
 
 
     // always @(FD_IR) begin

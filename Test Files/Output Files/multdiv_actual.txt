@@ -5,9 +5,9 @@ Cycle  12: Wrote 21 into register 2
 Cycle  13: Wrote 4294967295 into register 3
 Cycle  14: Wrote 4294967261 into register 4
 Cycle  17: Wrote 0 into register 19
-Cycle  18: Wrote 0 into register 20
-Cycle  53: Wrote 0 into register 21
-Cycle  54: Wrote 0 into register 22
+Cycle  35: Wrote 0 into register 20
+Cycle  37: Wrote 0 into register 21
+Cycle  55: Wrote 0 into register 22
 ============== Testing Mode ==============
 Reg  0:           0
 Reg  1:           3
