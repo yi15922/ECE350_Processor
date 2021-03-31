@@ -81,16 +81,16 @@ module processor(
     regFD FD(w_FD_PC_out, w_FD_IR_out, clock, !w_stall, reset, w_PC_in, w_FD_IR_in); 
 
     wire D_BLT, D_BNE; 
-    wire D_opcode; 
+    wire [4:0] D_opcode; 
     assign D_opcode = w_FD_IR_out[31:27]; 
-    assign D_BLT = w_FD_IR_out[31:27] == 5'b00110; 
-    assign D_BNE = w_FD_IR_out[31:27] == 5'b00010; 
+    assign D_BLT = D_opcode == 5'b00110; 
+    assign D_BNE = D_opcode == 5'b00010; 
     // Read from $rd if this is a branch or jr
     wire w_jr;
     assign ctrl_readRegA = (D_BNE || D_BLT || w_jr) ? w_FD_IR_out[26:22] : w_FD_IR_out[21:17]; 
     // Read from $rs if this is a branch, read from $rd if is a store, read from rt otherwise. 
     wire [4:0] readRegBstore; 
-    assign readRegBstore = w_FD_IR_out[31:27] == 5'b00111 ? w_FD_IR_out[26:22] : w_FD_IR_out[16:12]; 
+    assign readRegBstore = D_opcode == 5'b00111 ? w_FD_IR_out[26:22] : w_FD_IR_out[16:12]; 
     assign ctrl_readRegB = (D_BNE || D_BLT) ? w_FD_IR_out[21:17] : readRegBstore; 
 
     assign ctrl_writeEnable = (w_MW_IR_out[31:27] == 5'b00000) || (w_MW_IR_out[31:27] == 5'b00101) || 
