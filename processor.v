@@ -100,8 +100,8 @@ module processor(
     wire [31:0] w_DX_PC_out, w_DX_A_out, w_DX_B_out, w_DX_IR_out, w_DX_IR_in; 
     assign w_jr = w_DX_IR_out[31:27] == 5'b00100; 
 
-    wire DX_writeEnable, w_multdivReady, isMult, isDiv, w_multdivException; 
-    //assign DX_writeEnable = !((isMult || isDiv) && !w_multdivReady); 
+    wire DX_writeEnable, w_multdivReady, X_isMult, X_isDiv, w_multdivException; 
+    //assign DX_writeEnable = !((X_isMult || X_isDiv) && !w_multdivReady); 
     assign w_DX_IR_in = (w_stall || w_branch || w_jump) ? 32'd0 : w_FD_IR_out; 
     regDX DX(w_DX_PC_out, w_DX_IR_out, w_DX_A_out, w_DX_B_out, clock, 1'b1, reset, w_FD_PC_out, w_DX_IR_in, data_readRegA, data_readRegB); 
     
@@ -115,14 +115,14 @@ module processor(
 
     /* MULTDIV STAGE */ 
     wire [31:0] w_multdivOut;  
-    wire isMultDiv, multdivInProgress, savedMultdiv; 
-    dffe multdivRecord(savedMultdiv, isMultDiv, clock, isMultDiv, w_multdivReady); 
-    assign multdivInProgress = isMultDiv ? isMultDiv : savedMultdiv; 
+    wire X_isMultDiv, multdivInProgress, savedMultdiv; 
+    dffe multdivRecord(savedMultdiv, X_isMultDiv, clock, X_isMultDiv, w_multdivReady); 
+    assign multdivInProgress = X_isMultDiv ? X_isMultDiv : savedMultdiv; 
 
-    assign isMultDiv = isMult || isDiv; 
-    assign isMult = X_isRType && (X_aluop == 5'b00110); 
-    assign isDiv = X_isRType && (X_aluop == 5'b00111); 
-    multdiv MultDiv(w_alu_in_A, w_alu_in_B, isMult, isDiv, clock, w_multdivOut, w_multdivException, w_multdivReady); 
+    assign X_isMultDiv = X_isMult || X_isDiv; 
+    assign X_isMult = X_isRType && (X_aluop == 5'b00110); 
+    assign X_isDiv = X_isRType && (X_aluop == 5'b00111); 
+    multdiv MultDiv(w_alu_in_A, w_alu_in_B, X_isMult, X_isDiv, clock, w_multdivOut, w_multdivException, w_multdivReady); 
     wire [31:0] w_PW_IR_out, w_PW_P_out; 
     regPW PW(w_PW_IR_out, w_PW_P_out, clock, !savedMultdiv, reset, w_DX_IR_out, w_multdivOut);
 
@@ -173,7 +173,10 @@ module processor(
     assign X_isjal = X_opcode == 5'b00011; 
     assign w_MW_IR_in = w_multdivReady ? w_PW_IR_out : w_XM_IR_out; 
 
-    assign w_MW_O_inMultdiv = w_multdivReady ? w_multdivOut : w_XM_O_out; 
+    wire PW_isMultDiv; 
+    assign PW_isMultDiv = w_PW_IR_out[31:27] == 5'b00000 && (w_PW_IR_out[6:2] == 5'b00110 || w_PW_IR_out[6:2] == 5'b00111); 
+
+    assign w_MW_O_inMultdiv = PW_isMultDiv ? w_multdivOut : w_XM_O_out; 
     assign w_MW_O_in = X_isjal ? w_DX_PC_out : w_MW_O_inMultdiv; 
     regMW MW(w_MW_IR_out, w_MW_O_out, w_MW_D_out, clock, 1'b1, reset, w_MW_IR_in, w_MW_O_in, q_dmem); 
 

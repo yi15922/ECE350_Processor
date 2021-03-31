@@ -58,5 +58,3 @@ b8:
 nop			# Landing pad for branch
 nop			# Avoid add RAW hazard
 nop			
-# Final: $r10 should be 6, $r20 should be 0
-
