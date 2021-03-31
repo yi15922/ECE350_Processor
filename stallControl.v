@@ -26,7 +26,7 @@ module stallControl(stall, FD_IR, DX_IR, multDivReady, PW_IR, clock);
     assign multdivInProgress = X_isMultDiv ? X_isMultDiv : savedMultdiv; 
 
     wire multdivStall; 
-    assign multdivStall = multdivInProgress && ((FD_IR_RS == DX_IR_RD) || (FD_IR_RT == DX_IR_RD) || D_aluop == 5'b00110 || D_aluop == 5'b00111); 
+    assign multdivStall = multdivInProgress && ((FD_IR_RS == PW_IR_RD) || (FD_IR_RT == PW_IR_RD) || (FD_IR_Rs == DX_IR_RD) || (FD_IR_RT == DX_IR_RD) || D_aluop == 5'b00110 || D_aluop == 5'b00111); 
 
     
 
