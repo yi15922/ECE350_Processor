@@ -115,11 +115,16 @@ module processor(
 
     /* MULTDIV STAGE */ 
     wire [31:0] w_multdivOut;  
+    wire isMultDiv, multdivInProgress, savedMultdiv; 
+    dffe multdivRecord(savedMultdiv, isMultDiv, clock, isMultDiv, w_multdivReady); 
+    assign multdivInProgress = isMultDiv ? isMultDiv : savedMultdiv; 
+
+    assign isMultDiv = isMult || isDiv; 
     assign isMult = X_isRType && (X_aluop == 5'b00110); 
     assign isDiv = X_isRType && (X_aluop == 5'b00111); 
     multdiv MultDiv(w_alu_in_A, w_alu_in_B, isMult, isDiv, clock, w_multdivOut, w_multdivException, w_multdivReady); 
     wire [31:0] w_PW_IR_out, w_PW_P_out; 
-    regPW PW(w_PW_IR_out, w_PW_P_out, clock, isMult || isDiv, reset, w_DX_IR_out, w_multdivOut);
+    regPW PW(w_PW_IR_out, w_PW_P_out, clock, !savedMultdiv, reset, w_DX_IR_out, w_multdivOut);
 
     
 
@@ -164,11 +169,12 @@ module processor(
     assign address_dmem = w_XM_O_out; 
     assign wren = (M_opcode == 5'b00111); 
 
-    wire [31:0] w_MW_IR_out, w_MW_O_out, w_MW_D_out, w_MW_O_in, MW_O_in_multdiv; 
+    wire [31:0] w_MW_IR_out, w_MW_O_out, w_MW_D_out, w_MW_IR_in, w_MW_O_in, MW_O_in_multdiv; 
     assign X_isjal = X_opcode == 5'b00011; 
+    assign w_MW_IR_in = w_multdivReady ? w_PW_IR_out : w_XM_IR_out; 
 
     assign w_MW_O_in = X_isjal ? w_DX_PC_out : w_XM_O_out; 
-    regMW MW(w_MW_IR_out, w_MW_O_out, w_MW_D_out, clock, 1'b1, reset, w_XM_IR_out, w_MW_O_in, q_dmem); 
+    regMW MW(w_MW_IR_out, w_MW_O_out, w_MW_D_out, clock, 1'b1, reset, w_MW_IR_in, w_MW_O_in, q_dmem); 
 
     assign M_opcode = w_XM_IR_out[31:27]; 
 
@@ -180,7 +186,7 @@ module processor(
     assign ctrl_writeReg = (X_isjal) ? 5'd31 : w_MW_IR_out[26:22]; 
 
     bypassControl bypass(select_dmemMux, select_ALUinAMux, select_regoutBMux, w_DX_IR_out, w_XM_IR_out, w_MW_IR_out); 
-	stallControl stall(w_stall, w_FD_IR_out, w_DX_IR_out, w_multdivReady, clock); 
+	stallControl stall(w_stall, w_FD_IR_out, w_DX_IR_out, w_multdivReady, w_PW_IR_out, clock); 
     /* END CODE */
 
     // always @(posedge clock) begin 
