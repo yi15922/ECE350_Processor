@@ -176,7 +176,7 @@ module processor(
     wire PW_isMultDiv; 
     assign PW_isMultDiv = w_PW_IR_out[31:27] == 5'b00000 && (w_PW_IR_out[6:2] == 5'b00110 || w_PW_IR_out[6:2] == 5'b00111); 
 
-    assign w_MW_O_inMultdiv = PW_isMultDiv ? w_multdivOut : w_XM_O_out; 
+    assign w_MW_O_inMultdiv = PW_isMultDiv && w_multdivReady ? w_multdivOut : w_XM_O_out; 
     assign w_MW_O_in = X_isjal ? w_DX_PC_out : w_MW_O_inMultdiv; 
     regMW MW(w_MW_IR_out, w_MW_O_out, w_MW_D_out, clock, 1'b1, reset, w_MW_IR_in, w_MW_O_in, q_dmem); 
 
