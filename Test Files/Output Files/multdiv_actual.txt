@@ -7,9 +7,11 @@ Cycle  14: Wrote 4294967261 into register 4
 Cycle  17: Wrote 0 into register 19
 Cycle  33: Wrote 63 into register 19
 Cycle  35: Wrote 0 into register 20
-Cycle  37: Wrote 0 into register 21
-Cycle  53: Wrote 4294967293 into register 21
-Cycle  55: Wrote 0 into register 22
+Cycle  68: Wrote 7 into register 20
+Cycle  70: Wrote 0 into register 21
+Cycle  86: Wrote 4294967293 into register 21
+Cycle  88: Wrote 0 into register 22
+Cycle 121: Wrote 4294967285 into register 22
 ============== Testing Mode ==============
 Reg  0:           0
 Reg  1:           3
@@ -31,9 +33,9 @@ Reg 16:           0
 Reg 17:           0
 Reg 18:           0
 Reg 19:          63
-Reg 20:           0
+Reg 20:           7
 Reg 21:  4294967293
-Reg 22:           0
+Reg 22:  4294967285
 Reg 23:           0
 Reg 24:           0
 Reg 25:           0

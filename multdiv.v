@@ -27,7 +27,9 @@ module multdiv(
 
     assign data_result = w_mult ? w_multResult : w_divResult; 
     assign data_exception = w_mult ? w_multException : w_divException; 
-    assign data_resultRDY = w_mult ? w_multRDY : w_divRDY;  
+    wire isReady; 
+    assign isReady = w_mult ? w_multRDY : w_divRDY; 
+    assign data_resultRDY = !(ctrl_MULT || ctrl_DIV) && isReady ? 1'b1 : 1'b0;  
 
     // always @(data_resultRDY) begin
     //     #5; 

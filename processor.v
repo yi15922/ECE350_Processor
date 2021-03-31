@@ -169,19 +169,20 @@ module processor(
     assign address_dmem = w_XM_O_out; 
     assign wren = (M_opcode == 5'b00111); 
 
-    wire [31:0] w_MW_IR_out, w_MW_O_out, w_MW_D_out, w_MW_IR_in, w_MW_O_in, MW_O_in_multdiv; 
+    wire [31:0] w_MW_IR_out, w_MW_O_out, w_MW_D_out, w_MW_IR_in, w_MW_O_in, w_MW_O_inMultdiv; 
     assign X_isjal = X_opcode == 5'b00011; 
     assign w_MW_IR_in = w_multdivReady ? w_PW_IR_out : w_XM_IR_out; 
 
-    assign w_MW_O_in = X_isjal ? w_DX_PC_out : w_XM_O_out; 
+    assign w_MW_O_inMultdiv = w_multdivReady ? w_multdivOut : w_XM_O_out; 
+    assign w_MW_O_in = X_isjal ? w_DX_PC_out : w_MW_O_inMultdiv; 
     regMW MW(w_MW_IR_out, w_MW_O_out, w_MW_D_out, clock, 1'b1, reset, w_MW_IR_in, w_MW_O_in, q_dmem); 
 
     assign M_opcode = w_XM_IR_out[31:27]; 
 
     // Choose multdiv results when result is ready
     wire w_isMemoryLoad = (w_MW_IR_out[31:27] == 5'b01000); 
-    wire [31:0] writeRegMultdiv = w_multdivReady ? w_PW_P_out : w_MW_O_out; 
-    assign data_writeReg = w_isMemoryLoad ? w_MW_D_out : writeRegMultdiv; 
+
+    assign data_writeReg = w_isMemoryLoad ? w_MW_D_out : w_MW_O_out; 
     // write to register 31 if instruction is jal
     assign ctrl_writeReg = (X_isjal) ? 5'd31 : w_MW_IR_out[26:22]; 
 
