@@ -159,13 +159,18 @@ module processor(
     wire w_branchAdderOverflow;
     adder_32 branchAdder(w_branchedPC, w_branchAdderOverflow, data_signedImmediate, w_DX_PC_out, 1'b0); 
 
-    wire [31:0] w_XM_IR_out, w_XM_B_out; 
+    wire [31:0] w_XM_IR_out, w_XM_B_out, w_XM_O_in, w_XM_IR_in; 
     wire [4:0] M_opcode; 
 
-    wire select_dmemMux; 
+    wire select_dmemMux, X_setx; 
     assign data = select_dmemMux ? w_XM_B_out : data_writeReg; 
+    assign setx = w_DX_IR_out == 5'b10101;
+    assign w_XM_O_in = setx ? w_DX_IR_out : w_aluOut; 
+    assign w_XM_IR_in[31:27] = w_DX_IR_out[31:27]; 
+    assign w_XM_IR_in[21:0] = w_DX_IR_out[21:0]; 
+    assign w_XM_IR_in[26:22] = setx ? 5'b11110 : w_DX_IR_out[26:22]; 
 
-    regXM XM(w_XM_IR_out, w_XM_O_out, w_XM_B_out, clock, 1'b1, reset, w_DX_IR_out, w_aluOut, w_DX_B_out);
+    regXM XM(w_XM_IR_out, w_XM_O_out, w_XM_B_out, clock, 1'b1, reset, w_XM_IR_in, w_XM_O_in, w_DX_B_out);
     assign address_dmem = w_XM_O_out; 
     assign wren = (M_opcode == 5'b00111); 
 
